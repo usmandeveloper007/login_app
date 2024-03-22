@@ -41,9 +41,10 @@ class _AddPostsScreenState extends State<AddPostsScreen> {
                   setState(() {
                     loading = true;
                   });
-              databaseRef.child(DateTime.now().millisecondsSinceEpoch.toString()).set(
+                  String userId = DateTime.now().millisecondsSinceEpoch.toString();
+              databaseRef.child(userId).set(
                 {
-                  'id' : DateTime.now().millisecondsSinceEpoch.toString(),
+                  'id' : userId,
                   'message' : postController.text.toString(),
                 }
               ).then((value) {

@@ -17,6 +17,7 @@ class _PostScreenState extends State<PostScreen> {
   final auth = FirebaseAuth.instance;
   final ref = FirebaseDatabase.instance.ref('Posts');
   TextEditingController searchFilter = TextEditingController();
+  TextEditingController editController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,6 +65,7 @@ class _PostScreenState extends State<PostScreen> {
                 defaultChild: const Center(child: CircularProgressIndicator(color: Colors.deepPurple,),),
                 itemBuilder: (context, snapshot, animation, index){
                   final title = snapshot.child('message').value.toString();
+                  final id = snapshot.child('id').value.toString();
                   if(searchFilter.text.isEmpty){
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -72,6 +74,34 @@ class _PostScreenState extends State<PostScreen> {
                         tileColor: Colors.deepPurple[100],
                         title: Text(snapshot.child('message').value.toString()),
                         subtitle: Text(snapshot.child('id').value.toString()),
+                        trailing: PopupMenuButton(
+                          icon: const Icon(Icons.more_vert_outlined, color: Colors.deepPurple,),
+                            itemBuilder: (context) => [
+                               PopupMenuItem(
+                                value: 1,
+                                  child: ListTile(
+                                    title: const Text('Edit'),
+                                    leading: const Icon(Icons.edit, color: Colors.deepPurple,),
+                                    onTap: (){
+                                      Navigator.pop(context);
+                                      myDialogBox(title, id);
+                                    },
+                                  )
+                              ),
+                               PopupMenuItem(
+                                value: 2,
+                                  child: ListTile(
+                                    title: const Text('Delete'),
+                                    leading: const Icon(Icons.delete, color: Colors.red,),
+                                    onTap: (){
+                                      ref.child(id).remove();
+                                      Navigator.pop(context);
+                                      Utils().toastMessage('message deleted successfully');
+                                    },
+                                  ),
+                              ),
+                            ]
+                        ),
                       ),
                     );
                   } else if(title.toLowerCase().contains(searchFilter.text.toLowerCase())){
@@ -99,6 +129,38 @@ class _PostScreenState extends State<PostScreen> {
           },
         child: const Icon(Icons.add,),
       ),
+    );
+  }
+
+  Future <void> myDialogBox (String title,id) async{
+    editController.text = title;
+    return showDialog(
+        context: context,
+        builder: (context){
+          return  AlertDialog(
+            title: const Text('Update'),
+            content:  TextField(
+              controller: editController,
+              decoration: const InputDecoration(
+                hintText: 'Update the message',
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: (){Navigator.pop(context);}, child: const Text('Cancel')),
+              TextButton(onPressed: (){
+                ref.child(id).update({
+                    'message' : editController.text
+                  }
+                ).then((value) {
+                  Utils().toastMessage('message updated!');
+                }).onError((error, stackTrace){
+                  Utils().toastMessage(error.toString());
+                });
+                Navigator.pop(context);
+                }, child: const Text('Update')),
+            ],
+          );
+        }
     );
   }
 }
