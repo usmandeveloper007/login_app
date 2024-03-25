@@ -38,6 +38,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       setState(() {
         loading = false;
       });
+      Utils().toastMessage('Congratulations! Account Created');
     }
     ).onError((error, stackTrace) {
       Utils().toastMessage(error.toString());
